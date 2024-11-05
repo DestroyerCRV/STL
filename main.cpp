@@ -18,16 +18,22 @@ struct doctors {
     string specializare;
 
 };
+
+bool operator==(const problems& p, const doctors& d)
+{
+    return p.specialitateNecesara == d.specializare;
+}
+
 int main()
 {
 
     vector<problems> probleme;
     vector<doctors> doctori;
-    ifstream inFile("input.txt");
+    ifstream inFile("input3.txt");
 
     int no_problems, no_doctors;
     string name, speciality;
-    
+
     inFile >> no_problems;
 
     for (int i = 0; i < no_problems; i++)
@@ -50,19 +56,25 @@ int main()
 
     for (auto& i : probleme)
     {
-        bool found = false;
-        for (auto& j : doctori)
-        {
-            if (i.specialitateNecesara == j.specializare)
-            {
-                found = true;
-                cout << i.problema << " " << "Acceptat\n";
-                break;
-            }
-            
-        }
-        if(!found)
-            cout << i.problema << " " << "Respins\n";
+        /* bool found = false;
+         for (auto& j : doctori)
+         {
+             if (i.specialitateNecesara == j.specializare)
+             {
+                 found = true;
+                 cout << i.problema << " " << "Acceptat\n";
+                 break;
+             }
+
+         }
+         if(!found)
+             cout << i.problema << " " << "Respins\n";*/
+
+        auto it = find(doctori.begin(), doctori.end(), i);
+        if (it != doctori.end())
+            cout << i.problema << " " << "Acceptat\n";
+        else cout << i.problema << " " << "Respins\n";
+
     }
 
 
