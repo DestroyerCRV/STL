@@ -10,18 +10,22 @@ struct problems {
     string problema;
     string specialitateNecesara;
 
-
 };
 
 struct doctors {
     string nume;
     string specializare;
-
+    bool available = true;
 };
 
-bool operator==(const problems& p, const doctors& d)
+bool operator==(const problems& p,  const doctors& d)
 {
-    return p.specialitateNecesara == d.specializare;
+    if (p.specialitateNecesara == d.specializare && d.available == true)
+    {
+        return true;     
+    }
+        
+
 }
 
 int main()
@@ -29,7 +33,7 @@ int main()
 
     vector<problems> probleme;
     vector<doctors> doctori;
-    ifstream inFile("input3.txt");
+    ifstream inFile("input.txt");
 
     int no_problems, no_doctors;
     string name, speciality;
@@ -71,10 +75,16 @@ int main()
              cout << i.problema << " " << "Respins\n";*/
 
         auto it = find(doctori.begin(), doctori.end(), i);
+        
         if (it != doctori.end())
-            cout << i.problema << " " << "Acceptat\n";
-        else cout << i.problema << " " << "Respins\n";
+        {
 
+            int pos = distance(doctori.begin(), it);
+            doctori[pos].available = false;
+
+            cout << doctori[pos].nume << " " << doctori[pos].specializare << '\n';
+            
+        }         
     }
 
 
