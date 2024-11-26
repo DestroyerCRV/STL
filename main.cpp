@@ -2,92 +2,100 @@
 #include <fstream>
 #include <string>
 #include <vector>
-
+#include <set>
+#include <queue>
 using namespace std;
 // this is the main function
 
 struct problems {
     string problema;
     string specialitateNecesara;
-
+    int durata;
+    int prioritate;
+    
 };
 
 struct doctors {
     string nume;
     string specializare;
-    bool available = true;
+    int inceput = 9;
+    int sfarsit = 17;
+    vector<string> problemeRezolvate;
 };
 
-bool operator==(const problems& p,  const doctors& d)
-{
-    if (p.specialitateNecesara == d.specializare && d.available == true)
-    {
-        return true;     
+struct comparator {
+    bool operator()(problems& a, problems& b) const {
+        return a.prioritate < b.prioritate;
     }
-        
-
-}
+};
 
 int main()
 {
-
-    vector<problems> probleme;
-    vector<doctors> doctori;
-    ifstream inFile("input.txt");
+    ifstream inFile("input3.txt");
 
     int no_problems, no_doctors;
     string name, speciality;
+    int duration, priority;
 
     inFile >> no_problems;
-
+    priority_queue<problems, vector<problems>, comparator> probleme;
     for (int i = 0; i < no_problems; i++)
     {
         inFile >> name;
         inFile >> speciality;
-        probleme.emplace_back(name, speciality);
+        inFile >> duration;
+        inFile >> priority;
+        problems problema;
+        problema.durata = duration;
+        problema.prioritate = priority;
+        problema.specialitateNecesara = speciality;
+        problema.problema = name;
+        probleme.push(problema);
     }
 
     inFile >> no_doctors;
 
-
+    vector<doctors> doctori(no_doctors);
 
     for (int i = 0; i < no_doctors; i++)
     {
         inFile >> name;
         inFile >> speciality;
-        doctori.emplace_back(name, speciality);
+        doctori[i].nume = name;
+        doctori[i].specializare = speciality;
     }
 
-    for (auto& i : probleme)
+    while(!probleme.empty())
     {
-        /* bool found = false;
-         for (auto& j : doctori)
-         {
-             if (i.specialitateNecesara == j.specializare)
-             {
-                 found = true;
-                 cout << i.problema << " " << "Acceptat\n";
-                 break;
-             }
+        problems Problema = probleme.top();
+        auto it = find_if(doctori.begin(), doctori.end(), [&](doctors& x) {
+            if (x.specializare == Problema.specialitateNecesara && x.inceput + Problema.durata <= x.sfarsit)
+            {
+                x.problemeRezolvate.emplace_back(Problema.problema);
+                return true;
+            }
+            return false;
+            });
 
-         }
-         if(!found)
-             cout << i.problema << " " << "Respins\n";*/
-
-        auto it = find(doctori.begin(), doctori.end(), i);
-        
         if (it != doctori.end())
         {
-
-            int pos = distance(doctori.begin(), it);
-            doctori[pos].available = false;
-
-            cout << doctori[pos].nume << " " << doctori[pos].specializare << '\n';
-            
-        }         
+            (*it).inceput += Problema.durata;
+        }
+        probleme.pop();
     }
 
-
+    for (auto& i : doctori)
+    {
+        if (!i.problemeRezolvate.empty())
+        {
+            cout << i.nume << " " << i.problemeRezolvate.size() << " ";
+            for (auto& j : i.problemeRezolvate)
+            {
+                cout << j << " ";
+            }
+            cout << '\n';
+        }
+    }
 
     return 0;
 }
