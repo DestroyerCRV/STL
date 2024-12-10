@@ -12,15 +12,18 @@ struct problems {
     string specialitateNecesara;
     int durata;
     int prioritate;
+    int oraSosire;
     
 };
 
 struct doctors {
     string nume;
-    string specializare;
+    //string specializare;
     int inceput = 9;
     int sfarsit = 17;
-    vector<string> problemeRezolvate;
+    int nrSpecializari;
+    vector<pair<string, int>> problemeRezolvate;
+    vector<string> listaSpecializari;
 };
 
 struct comparator {
@@ -29,13 +32,13 @@ struct comparator {
     }
 };
 
-int main()
+int main1()
 {
-    ifstream inFile("input3.txt");
+    ifstream inFile("input2.txt");
 
     int no_problems, no_doctors;
     string name, speciality;
-    int duration, priority;
+    int duration, priority, ora;
 
     inFile >> no_problems;
     priority_queue<problems, vector<problems>, comparator> probleme;
@@ -43,6 +46,7 @@ int main()
     {
         inFile >> name;
         inFile >> speciality;
+        inFile >> ora;
         inFile >> duration;
         inFile >> priority;
         problems problema;
@@ -50,36 +54,48 @@ int main()
         problema.prioritate = priority;
         problema.specialitateNecesara = speciality;
         problema.problema = name;
+        problema.oraSosire = ora;
         probleme.push(problema);
     }
 
     inFile >> no_doctors;
-
+    int nr;
     vector<doctors> doctori(no_doctors);
 
     for (int i = 0; i < no_doctors; i++)
     {
         inFile >> name;
-        inFile >> speciality;
+        inFile >> nr;
+        for (int j = 0; j < nr; j++)
+        {
+            inFile >> speciality;
+            doctori[i].listaSpecializari.emplace_back(speciality);
+        }
+        
         doctori[i].nume = name;
-        doctori[i].specializare = speciality;
     }
 
     while(!probleme.empty())
     {
         problems Problema = probleme.top();
         auto it = find_if(doctori.begin(), doctori.end(), [&](doctors& x) {
-            if (x.specializare == Problema.specialitateNecesara && x.inceput + Problema.durata <= x.sfarsit)
+            for (auto& a : x.listaSpecializari)
             {
-                x.problemeRezolvate.emplace_back(Problema.problema);
-                return true;
+                if (a == Problema.specialitateNecesara && x.inceput + Problema.durata <= x.sfarsit)
+                {
+                    x.problemeRezolvate.push_back({ Problema.problema, x.inceput });
+                    
+                    return true;
+                }
             }
+            
             return false;
             });
 
         if (it != doctori.end())
         {
             (*it).inceput += Problema.durata;
+            
         }
         probleme.pop();
     }
@@ -91,7 +107,7 @@ int main()
             cout << i.nume << " " << i.problemeRezolvate.size() << " ";
             for (auto& j : i.problemeRezolvate)
             {
-                cout << j << " ";
+                cout << j.first << " " << j.second << " ";
             }
             cout << '\n';
         }
