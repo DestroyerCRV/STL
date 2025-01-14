@@ -4,26 +4,24 @@
 #include <vector>
 #include <set>
 #include <queue>
-using namespace std;
-// this is the main function
 
-struct problems {
+using namespace std;
+struct atributeProblema {
     string problema;
     string specialitateNecesara;
     int durata;
     int prioritate;
     int oraSosire;
 
-    bool operator<(const problems& b) const {
+    bool operator<(const atributeProblema& b) const {
         if (oraSosire != b.oraSosire)
             return oraSosire > b.oraSosire;
         return prioritate < b.prioritate;
     }
 };
 
-struct doctors {
+struct atributeDoctor {
     string nume;
-    //string specializare;
     int inceput = 9;
     int sfarsit = 17;
     int nrSpecializari;
@@ -31,45 +29,65 @@ struct doctors {
     vector<string> listaSpecializari;
 };
 
-struct comparator {
-    
-};
 
-int main()
+void problemeRezolvateDeDoctori(vector<atributeDoctor>& doctori)
 {
-    ifstream inFile("input2.txt");
+    for (auto& doctorCurent : doctori)
+    {
+        if (!doctorCurent.problemeRezolvate.empty())
+        {
+            cout << doctorCurent.nume << " " << doctorCurent.problemeRezolvate.size() << " ";
+            for (auto& problemaRezolvataCurenta : doctorCurent.problemeRezolvate)
+            {
+                cout << problemaRezolvataCurenta.first << " " << problemaRezolvataCurenta.second << " ";
+            }
+            cout << '\n';
+        }
+    }
+}
 
-    int no_problems, no_doctors;
-    string name, speciality;
-    int duration, priority, ora;
+void gasesteDoctorPotrivit(vector<atributeDoctor>& doctori, const atributeProblema& Problema)
+{
+    auto it = find_if(doctori.begin(), doctori.end(), [&](atributeDoctor& doctorCurent) {
+        for (auto& specializareCurenta : doctorCurent.listaSpecializari)
+        {
+            if (specializareCurenta == Problema.specialitateNecesara && doctorCurent.inceput + Problema.durata <= doctorCurent.sfarsit && doctorCurent.inceput <= Problema.oraSosire)
+            {
+                doctorCurent.inceput = Problema.oraSosire + Problema.durata;
+                doctorCurent.problemeRezolvate.push_back({ Problema.problema, Problema.oraSosire });
+                return true;
+            }
+        }
+        return false;
+        });
+}
 
-    inFile >> no_problems;
-    priority_queue<problems> probleme;
+void citireProbleme(int no_problems, ifstream& inFile, string& name, string& tipProblema, int& ora, int& duration, int& priority, priority_queue<atributeProblema>& probleme)
+{
     for (int i = 0; i < no_problems; i++)
     {
         inFile >> name;
-        inFile >> speciality;
+        inFile >> tipProblema;
         inFile >> ora;
         inFile >> duration;
         inFile >> priority;
-        problems problema;
+        atributeProblema problema;
         problema.durata = duration;
         problema.prioritate = priority;
-        problema.specialitateNecesara = speciality;
+        problema.specialitateNecesara = tipProblema;
         problema.problema = name;
         problema.oraSosire = ora;
         probleme.push(problema);
     }
+}
 
-    inFile >> no_doctors;
-    int nr;
-    vector<doctors> doctori(no_doctors);
-
+void citireDoctori(int no_doctors, ifstream& inFile, string& name, int& numarProblemeDoctorCurent, string& speciality, vector<atributeDoctor>& doctori)
+{
     for (int i = 0; i < no_doctors; i++)
     {
         inFile >> name;
-        inFile >> nr;
-        for (int j = 0; j < nr; j++)
+        inFile >> numarProblemeDoctorCurent;
+        for (int j = 0; j < numarProblemeDoctorCurent; j++)
         {
             inFile >> speciality;
             doctori[i].listaSpecializari.emplace_back(speciality);
@@ -77,45 +95,35 @@ int main()
 
         doctori[i].nume = name;
     }
+}
 
-    while (!probleme.empty())
+int main()
+{
+    ifstream inFile("input4_bonus.txt");
+
+    int numarProbleme, numarDoctori;
+    string numePersoana, specialitate;
+    int durata, prioritate, ora;
+    priority_queue<atributeProblema> pacienti;
+    inFile >> numarProbleme;
+    
+    citireProbleme(numarProbleme, inFile, numePersoana, specialitate, ora, durata, prioritate, pacienti);
+
+    inFile >> numarDoctori;
+    int numarProblemeDoctorCurent;
+    vector<atributeDoctor> doctori(numarDoctori);
+
+    citireDoctori(numarDoctori, inFile, numePersoana, numarProblemeDoctorCurent, specialitate, doctori);
+
+    while (!pacienti.empty())
     {
-        problems Problema = probleme.top();
-        probleme.pop();
+        atributeProblema Problema = pacienti.top();
+        pacienti.pop();
 
-        auto it = find_if(doctori.begin(), doctori.end(), [&](doctors& x) {
-            for (auto& a : x.listaSpecializari)
-            {
-                if (a == Problema.specialitateNecesara && x.inceput + Problema.durata <= x.sfarsit && x.inceput <= Problema.oraSosire)
-                {
-                    x.inceput = Problema.oraSosire + Problema.durata;
-                    x.problemeRezolvate.push_back({ Problema.problema, Problema.oraSosire });
-                    return true;
-                }
-            }
-
-            return false;
-            });
-
-       /* if (it != doctori.end())
-        {
-            (*it).inceput = Problema.oraSosire + Problema.durata;
-
-        }*/
+        gasesteDoctorPotrivit(doctori, Problema);
     }
 
-    for (auto& i : doctori)
-    {
-        if (!i.problemeRezolvate.empty())
-        {
-            cout << i.nume << " " << i.problemeRezolvate.size() << " ";
-            for (auto& j : i.problemeRezolvate)
-            {
-                cout << j.first << " " << j.second << " ";
-            }
-            cout << '\n';
-        }
-    }
+    problemeRezolvateDeDoctori(doctori);
 
     return 0;
 }
